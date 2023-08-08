@@ -57,14 +57,13 @@ int main(int argc, char* argv[])
     
     // GPS Lavant hard coded for now to test.
     // Note position accuracy is in mm!
-    driver->setBasePosition(50.867740347,  -0.791097831,87.70, 130);
+    driver->setBasePosition(50.867740347, -0.791097831, 87.70, 130);
 
 
     GPSHelper::GPSConfig gps_config {};
     // to test if RTCM is not available
     //gps_config.output_mode = GPSHelper::OutputMode::GPS;
     gps_config.output_mode = GPSHelper::OutputMode::RTCM;
-    gps_config.gnss_systems = GPSHelper::GNSSSystemsMask::RECEIVER_DEFAULTS;
 
     if (driver->configure(baudrate, gps_config) != 0) {
         printf("configure failed\n");
@@ -73,20 +72,20 @@ int main(int argc, char* argv[])
 
     printf("configure done!\n");
 
-    const unsigned timeout_ms = 5000;
+    const unsigned timeout_ms = 1200;
 
     while (true) {
         // Keep running, and don't stop on timeout.
         // Every now and then it timeouts but I'm not sure if that's actually
         // warranted given correct messages are still arriving.
-        int ret =0;
+        int ret = 0;
         
         auto time_start = high_resolution_clock::now();
         ret = driver->receive(timeout_ms);
         auto time_execution = duration_cast<milliseconds>(high_resolution_clock::now() - time_start);
         printf("time lapsed:%d\n", int(time_execution.count()));
 
-        if (ret<0){           
+        if (ret < 0){           
             // Timedout
             printf("timed out, ret:%d",ret);
             //exit(-1);

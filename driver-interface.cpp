@@ -43,7 +43,12 @@ void DriverInterface::send_rtcm_data(const uint8_t* data, int data_len)
 
     mavsdk::Rtk::RtcmData rtcm_data;
     rtcm_data.data.insert(rtcm_data.data.end(), data, data + data_len);
-    rtk_plugin_->send_rtcm_data(rtcm_data);
+    mavsdk::Rtk::Result result = rtk_plugin_->send_rtcm_data(rtcm_data);
+    if (result != mavsdk::Rtk::Result::Success) {
+        std::cout << "Error sending RTCM data: " << result << std::endl;
+    } else {
+        std::cout << "Successfully sent RTCM data" << std::endl;
+    }
 
     std::cout << "Fix type: " << telemetry_plugin_->gps_info().fix_type << '\n';
 }

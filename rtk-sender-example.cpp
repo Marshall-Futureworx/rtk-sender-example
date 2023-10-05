@@ -83,11 +83,11 @@ int main(int argc, char* argv[])
         auto time_start = high_resolution_clock::now();
         ret = driver->receive(timeout_ms);
         auto time_execution = duration_cast<milliseconds>(high_resolution_clock::now() - time_start);
-        printf("time lapsed:%d\n", int(time_execution.count()));
+        // printf("time lapsed:%d\n", int(time_execution.count()));
 
         if (ret < 0){           
             // Timedout
-            printf("timed out, ret:%d",ret);
+            // printf("timed out, ret:%d",ret);
             //exit(-1);
         } 
     }

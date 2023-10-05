@@ -46,8 +46,8 @@ bool SerialComms::set_baudrate(unsigned baudrate)
     tc.c_cflag &= ~(CSIZE | PARENB | CRTSCTS);
     tc.c_cflag |= CS8;
 
-    tc.c_cc[VMIN] = 0; // Let's wait for 10 bytes.
-    tc.c_cc[VTIME] = 10; // Timeout after 1 second.
+    tc.c_cc[VMIN] = 0;
+    tc.c_cc[VTIME] = 0;
 
     tc.c_cflag |= CLOCAL; // Without this a write() blocks indefinitely.
 
@@ -71,6 +71,36 @@ bool SerialComms::set_baudrate(unsigned baudrate)
 
     printf("set baudrate to %u\n", baudrate);
 
+    return true;
+}
+
+bool SerialComms::waitForReadyRead(uint32_t timeout)
+{
+    // Setup a select call to block for serial data or a timeout
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(fd_, &readfds);
+    timespec timeout_ts;
+    timeout_ts.tv_sec = timeout / 1e3;
+    timeout_ts.tv_nsec = (timeout - (timeout_ts.tv_sec * 1e3)) * 1e6;
+    int r = pselect(fd_ + 1, &readfds, NULL, NULL, &timeout_ts, NULL);
+    
+    if (r < 0) {
+        // Select was interrupted
+        if (errno == EINTR) {
+            return false;
+        }
+    }
+    
+    // Timeout occurred
+    if (r == 0) {
+        return false;
+    }
+    
+    if (!FD_ISSET(fd_, &readfds)) {
+    }
+    
+    // Data available to read.
     return true;
 }
 

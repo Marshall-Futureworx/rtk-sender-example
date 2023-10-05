@@ -20,7 +20,7 @@ int DriverInterface::callback(GPSCallbackType type, void* data1, int data2)
             return (serial_comms_.set_baudrate(data2) ? 0 : 1);
 
         case GPSCallbackType::gotRTCMMessage:
-            send_rtcm_data(static_cast<const uint8_t*>(data1), data2);
+            send_rtcm_data((uint8_t*)(data1), data2);
             return 0;
 
         default:
@@ -29,7 +29,7 @@ int DriverInterface::callback(GPSCallbackType type, void* data1, int data2)
     }
 }
 
-void DriverInterface::send_rtcm_data(const uint8_t* data, int data_len)
+void DriverInterface::send_rtcm_data(uint8_t* data, int data_len)
 {
     if (!rtk_plugin_) {
         if (mavsdk_.systems().empty()) {
@@ -42,7 +42,7 @@ void DriverInterface::send_rtcm_data(const uint8_t* data, int data_len)
     }
 
     mavsdk::Rtk::RtcmData rtcm_data;
-    rtcm_data.data.insert(rtcm_data.data.end(), data, data + data_len);
+    rtcm_data.data = std::string((char*)data, static_cast<int>(data_len));
     mavsdk::Rtk::Result result = rtk_plugin_->send_rtcm_data(rtcm_data);
     if (result != mavsdk::Rtk::Result::Success) {
         std::cout << "Error sending RTCM data: " << result << std::endl;

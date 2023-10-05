@@ -19,7 +19,7 @@ public:
 
     int callback(GPSCallbackType type, void* data1, int data2);
 
-    void send_rtcm_data(const uint8_t* data, int data_len);
+    void send_rtcm_data(uint8_t* data, int data_len);
 
     struct sensor_gps_s        gps_pos;
 	struct satellite_info_s    sat_info;

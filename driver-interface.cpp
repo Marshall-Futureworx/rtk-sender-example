@@ -10,9 +10,15 @@ int DriverInterface::callback_entry(GPSCallbackType type, void* data1, int data2
 int DriverInterface::callback(GPSCallbackType type, void* data1, int data2)
 {
     switch (type) {
-        case GPSCallbackType::readDeviceData:
+        case GPSCallbackType::readDeviceData: {
+            if (serial_comms_.bytesAvailable() == 0) {
+                int timeout = *((int *) data1);
+                if (!serial_comms_.waitForReadyRead(timeout)) {
+                    return 0; // timeout
+                }
+            }
             return serial_comms_.read(static_cast<uint8_t*>(data1), data2);
-
+        }
         case GPSCallbackType::writeDeviceData:
             return serial_comms_.write(static_cast<const uint8_t*>(data1), data2);
 

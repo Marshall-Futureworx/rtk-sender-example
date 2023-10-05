@@ -1,10 +1,22 @@
 #include "serial-comms.h"
 #include <cstdio>
 #include <errno.h>
+#include <sys/ioctl.h>
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <termios.h>
+
+#include <iostream>
+
+#ifndef TIOCINQ
+#ifdef FIONREAD
+#define TIOCINQ FIONREAD
+#else
+#define TIOCINQ 0x541B
+#endif
+#endif
+
 
 SerialComms::~SerialComms()
 {
@@ -74,6 +86,20 @@ bool SerialComms::set_baudrate(unsigned baudrate)
     return true;
 }
 
+size_t SerialComms::bytesAvailable()
+{
+    if (fd_ == -1) {
+        return 0;
+    }
+    int count = 0;
+    if (-1 == ioctl(fd_, TIOCINQ, &count)) {
+        throw std::iostream::failure(strerror(errno));
+    } else {
+        return static_cast<size_t>(count);
+    }
+}
+    
+
 bool SerialComms::waitForReadyRead(uint32_t timeout)
 {
     // Setup a select call to block for serial data or a timeout
@@ -90,6 +116,8 @@ bool SerialComms::waitForReadyRead(uint32_t timeout)
         if (errno == EINTR) {
             return false;
         }
+        // Otherwise there was some error
+        throw std::iostream::failure(strerror(errno));
     }
     
     // Timeout occurred
@@ -98,6 +126,7 @@ bool SerialComms::waitForReadyRead(uint32_t timeout)
     }
     
     if (!FD_ISSET(fd_, &readfds)) {
+        throw std::iostream::failure("select reports ready to read, but our fd isn't in the list, this shouldn't happen!");
     }
     
     // Data available to read.

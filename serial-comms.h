@@ -12,6 +12,8 @@ public:
     bool init(std::string path);
     bool set_baudrate(unsigned baudrate);
     
+    size_t bytesAvailable();
+    
     bool waitForReadyRead(uint32_t timeout);
 
     ssize_t read(uint8_t* bytes, unsigned bytes_len);

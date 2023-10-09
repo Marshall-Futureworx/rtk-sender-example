@@ -30,6 +30,8 @@ int main(int argc, char* argv[])
     if (!serial_comms.init(argv[1])) {
         return 2;
     }
+    
+    serial_comms.set_baudrate(9600);
 
     mavsdk::Mavsdk mavsdk;
 
@@ -65,7 +67,7 @@ int main(int argc, char* argv[])
     //gps_config.output_mode = GPSHelper::OutputMode::GPS;
     gps_config.output_mode = GPSHelper::OutputMode::RTCM;
 
-    if (driver->configure(0, gps_config) != 0) {
+    if (driver->configure(baudrate, gps_config) != 0) {
         printf("configure failed\n");
         return 4;
     }

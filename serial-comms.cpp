@@ -57,11 +57,14 @@ bool SerialComms::set_baudrate(unsigned baudrate)
     tc.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG | TOSTOP);
     tc.c_cflag &= ~(CSIZE | PARENB | CRTSCTS);
     tc.c_cflag |= CS8;
+    tc.c_cflag &= ~CSTOPB;
+    tc.c_iflag &= ~(IXON | IXOFF |IXANY);
 
     tc.c_cc[VMIN] = 0;
     tc.c_cc[VTIME] = 0;
 
     tc.c_cflag |= CLOCAL; // Without this a write() blocks indefinitely.
+    tc.c_cflag |= CREAD;
 
     if (cfsetispeed(&tc, baudrate_define) != 0) {
         printf("cfsetispeed failed: %s\n", strerror(errno));

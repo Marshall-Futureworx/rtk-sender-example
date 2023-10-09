@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     //gps_config.output_mode = GPSHelper::OutputMode::GPS;
     gps_config.output_mode = GPSHelper::OutputMode::RTCM;
 
-    if (driver->configure(baudrate, gps_config) != 0) {
+    if (driver->configure(0, gps_config) != 0) {
         printf("configure failed\n");
         return 4;
     }

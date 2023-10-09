@@ -31,11 +31,6 @@ bool SerialComms::init(std::string path)
         printf("open failed: %s\n", strerror(errno));
         return false;
     }
-    // We need to clear the O_NONBLOCK again.
-    if (fcntl(fd_, F_SETFL, 0) == -1) {
-        printf("open failed: %s\n", strerror(errno));
-        return false;
-    }
 
     return true;
 }
@@ -52,19 +47,22 @@ bool SerialComms::set_baudrate(unsigned baudrate)
         return false;
     }
 
-    tc.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON);
-    tc.c_oflag &= ~(OCRNL | ONLCR | ONLRET | ONOCR | OFILL | OPOST);
-    tc.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG | TOSTOP);
-    tc.c_cflag &= ~(CSIZE | PARENB | CRTSCTS);
-    tc.c_cflag |= CS8;
-    tc.c_cflag &= ~CSTOPB;
-    tc.c_iflag &= ~(IXON | IXOFF |IXANY);
-
+    tc.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    tc.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    tc.c_oflag &= ~OPOST;
     tc.c_cc[VMIN] = 0;
     tc.c_cc[VTIME] = 0;
+    
+    tc.c_cflag |= CS8;
+    tc.c_iflag &= ~(IXON | IXOFF |IXANY);
 
     tc.c_cflag |= CLOCAL; // Without this a write() blocks indefinitely.
     tc.c_cflag |= CREAD;
+    
+    tc.c_cflag &= ~(PARENB | PARODD);
+    tc.c_cflag &= ~CSTOPB;
+    tc.c_cflag &= ~CRTSCTS;
+
 
     if (cfsetispeed(&tc, baudrate_define) != 0) {
         printf("cfsetispeed failed: %s\n", strerror(errno));

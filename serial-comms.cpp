@@ -46,23 +46,32 @@ bool SerialComms::set_baudrate(unsigned baudrate)
         reset();
         return false;
     }
-
-    tc.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
-    tc.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
-    tc.c_oflag &= ~OPOST;
-    tc.c_cc[VMIN] = 0;
-    tc.c_cc[VTIME] = 0;
     
-    tc.c_cflag |= CS8;
-    tc.c_iflag &= ~(IXON | IXOFF |IXANY);
-
-    tc.c_cflag |= CLOCAL; // Without this a write() blocks indefinitely.
+    cfmakeraw(&tc);
+    
+    tc.c_cflag |= CLOCAL;
+    tc.c_cc[VTIME] = 0;
+    tc.c_cc[VMIN] = 0;
+    
     tc.c_cflag |= CREAD;
     
-    tc.c_cflag &= ~(PARENB | PARODD);
-    tc.c_cflag &= ~CSTOPB;
-    tc.c_cflag &= ~CRTSCTS;
+    tc.c_cflag |= CS8;
 
+    tc.c_iflag &= ~(PARMRK | INPCK);
+    tc.c_iflag |= IGNPAR;
+    
+    tc.c_cflag &= ~PARENB;
+    
+    tc.c_cflag &= ~CSTOPB;
+
+    tc.c_cflag &= ~CRTSCTS;
+    tc.c_iflag &= ~(IXON | IXOFF |IXANY);    
+
+    if (tcsetattr(fd_, TCSANOW, &tc) != 0) {
+        printf("tcsetattr failed: %s\n", strerror(errno));
+        close(fd_);
+        return false;
+    }
 
     if (cfsetispeed(&tc, baudrate_define) != 0) {
         printf("cfsetispeed failed: %s\n", strerror(errno));
@@ -72,12 +81,6 @@ bool SerialComms::set_baudrate(unsigned baudrate)
 
     if (cfsetospeed(&tc, baudrate_define) != 0) {
         printf("cfsetospeed failed: %s\n", strerror(errno));
-        close(fd_);
-        return false;
-    }
-
-    if (tcsetattr(fd_, TCSANOW, &tc) != 0) {
-        printf("tcsetattr failed: %s\n", strerror(errno));
         close(fd_);
         return false;
     }
